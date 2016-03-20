@@ -1,6 +1,6 @@
 COMMON_FILES     := playfairCrack.h
 COMMON_ARGUMENTS := -Wall -Werror -g
-OPTIMIZATION     := -O0
+OPTIMIZATION     := -O3
 CRACK_FILE       := playfairCrack.c
 CRACK_BINARY     := crack
 
