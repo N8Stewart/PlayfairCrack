@@ -6,6 +6,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "quadgram.h"
 #include "playfairCrack.h"
@@ -16,7 +17,11 @@ int main() {
 	char *m;
 	printf("Input String: ");
 	m = readCipher(stdin, INPUT_STEP_SIZE);
-	printf("%s\n", m);
+
+	if (validateText(m, strlen(m)) == 0)
+		printf("%s\n", m);
+	else
+		printf("Invalid input.\n");
 	free(m);
 	return 0;
 }
@@ -42,4 +47,13 @@ char * readCipher(FILE *fin, size_t size) {
 	return str;
 }
 
+
+int validateText(char *text, int len) {
+	int i;
+	for (i = 0; i < len; i++)
+		if (text[i] < 'A' || text[i] > 'Z')
+			return -1;
+
+	return 0;
+}
 
