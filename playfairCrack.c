@@ -19,7 +19,7 @@ int main() {
 	m = readCipher(stdin, INPUT_STEP_SIZE);
 
 	if (validateText(m, strlen(m)) == 0)
-		printf("%s\n", m);
+		printf("Score: %lf\n", scoreText(m, strlen(m)));
 	else
 		printf("Invalid input.\n");
 	free(m);
@@ -47,6 +47,27 @@ char * readCipher(FILE *fin, size_t size) {
 	return str;
 }
 
+double scoreQuadgram(char *text) {
+	int index[4];
+	// Get a number associated with the index of each character
+	index[0] = (*(text + 0) - 'A') * 17576;
+	index[1] = (*(text + 1) - 'A') * 676;
+	index[2] = (*(text + 2) - 'A') * 26;
+	index[3] = (*(text + 3) - 'A') * 1;
+	printf("Index: %d\n", index[0] + index[1] + index[2] + index[3]);
+	return quadgram[index[0] + index[1] + index[2] + index[3]];
+}
+
+double scoreText(char *text, int len) {
+	int i;
+	double score = 0.0;
+	// Calculate all quadgrams in the text
+	for (i = 0; i < len - 3; i++) {
+		score += scoreQuadgram(text + i);
+	}
+
+	return score;
+}
 
 int validateText(char *text, int len) {
 	int i;

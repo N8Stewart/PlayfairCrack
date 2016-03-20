@@ -1,4 +1,13 @@
 
+/*
+ * Score a quadgram using the quadgrams stored in quadgrams.h
+ */
+double scoreQuadgram(char *text);
+
+/*
+ * Score the text
+ */
+double scoreText(char *text, int len);
 
 /*
  * Ensure the text is valid. All uppercase letters and no punctuation or spaces
