@@ -9,6 +9,7 @@
 #include <string.h>
 #include <float.h>
 #include <math.h>
+#include <time.h>
 
 #include "quadgram.h"
 #include "playfairCrack.h"
@@ -77,19 +78,31 @@ int main(int argc, char **argv) {
 	printf("%s\n", ciphertext);
 
 	int iter = 0;
-	double score;//, max = -DBL_MAX;
+	double score = -DBL_MAX, maxScore = -DBL_MAX;
+	srand(time(NULL)); // randomize seed
 	// Run until max iteration met 
 	while (iter < MAX_ITERATIONS) {
 		iter++;
-		// Compute new key
-		score = scoreText(ciphertext, messageLen);
-		decipher(key, ciphertext, plaintext, messageLen);
+		while (score <= maxScore) {
+			alterKey(key);
+			decipher(key, ciphertext, plaintext, messageLen);
+			score = scoreText(plaintext, messageLen);	
+		}
+		maxScore = score;
 		output(iter, score, key, plaintext);
 	}
 	
 	free(plaintext);
 	free(ciphertext);
 	return 0;
+}
+
+void alterKey(char *key) {	
+	// Get two random indexes and swap the characters in them
+	int c1 = rand() % 25, c2 = rand() % 25;
+	char temp = key[c1];
+	key[c1] = key[c2];
+	key[c2] = temp;
 }
 
 void decipher(char *key, char *ciphertext, char *plaintext, int len) {

@@ -46,3 +46,7 @@ void output(int iteration, double score, char *key, char *plaintext);
  */
 void decipher(char *key, char *ciphertext, char *plaintext, int len);
 
+/* 
+ * Modify the key by switching two random letters.
+ */
+void alterKey(char *key);
