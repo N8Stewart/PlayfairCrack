@@ -1,0 +1,9 @@
+# ignore temporary files
+*.out
+*.o
+*.swp
+*.DS_Store
+
+# ignore the binary crack file
+crack
+
