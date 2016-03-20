@@ -15,9 +15,12 @@ extern float quadgram[];
 
 int main(int argc, char **argv) {
 
-	char cipher[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+	char key[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 	FILE *fin = stdin;
 
+	/*
+	 * Get command line arguments. Setup key and input location
+	 */
 	switch (argc) {
 		case 2:
 			fin = fopen(argv[1], "r");
@@ -26,7 +29,7 @@ int main(int argc, char **argv) {
 				return -1;
 			}
 		case 1:
-			if (!removeLetter(cipher, 'J')) {
+			if (!removeLetter(key, 'J')) {
 				printf("Could not remove letter J from cipher key.\n");
 				return -1;
 			}
@@ -42,7 +45,7 @@ int main(int argc, char **argv) {
 				printf("Optional parameter '-r' not found. '%s' found instead.\n", argv[1]);
 				return -1;
 			}
-			if(!removeLetter(cipher, argv[2][0])) {
+			if(!removeLetter(key, argv[2][0])) {
 				printf("Could not remove letter %c from cipher key.\n", argv[2][0]);
 				return -1;
 			}
@@ -53,19 +56,24 @@ int main(int argc, char **argv) {
 			return -1;
 	}
 
-	char *m;
-	m = readCipher(fin, INPUT_STEP_SIZE);
-
-	if (validateText(m, strlen(m)) == 0)
-		printf("Score: %lf\n", scoreText(m, strlen(m)));
-	else
+	/*
+	 * Input cipher and ensure it is valid
+	 */
+	char *cipher;
+	int cipherLen;
+	cipher = readCipher(fin, INPUT_STEP_SIZE);
+	cipherLen = strlen(cipher);
+	if (validateText(cipher, cipherLen) != 0)
 		printf("Invalid input.\n");
-	free(m);
-
 	// close the file as long as it is not stdin
 	if (fin != stdin)
 		fclose(fin);
 	
+	// Output relevant information for error checking
+	printf("Attempting to crack following cipher with key: %s\n", key);
+	printf("%s\n", cipher);
+	
+	free(cipher);
 	return 0;
 }
 
