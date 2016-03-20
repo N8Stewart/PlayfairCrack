@@ -41,3 +41,8 @@ bool removeLetter(char *cipher, char letter);
  */
 void output(int iteration, double score, char *key, char *plaintext);
 
+/*
+ * Decipher ciphertext using key and put result in plaintext
+ */
+void decipher(char *key, char *ciphertext, char *plaintext, int len);
+

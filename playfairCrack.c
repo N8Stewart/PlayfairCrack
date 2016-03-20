@@ -82,8 +82,8 @@ int main(int argc, char **argv) {
 	while (iter < MAX_ITERATIONS) {
 		iter++;
 		// Compute new key
-		// Compute new score
 		score = scoreText(ciphertext, messageLen);
+		decipher(key, ciphertext, plaintext, messageLen);
 		output(iter, score, key, plaintext);
 	}
 	
@@ -92,9 +92,56 @@ int main(int argc, char **argv) {
 	return 0;
 }
 
+void decipher(char *key, char *ciphertext, char *plaintext, int len) {
+	int i;
+	// index, row and column of the current digram
+	char c1, c2;
+	int c1_ind, c1_row, c1_col, c2_ind, c2_row, c2_col;
+
+	for (i = 0; i < len; i += 2) {
+		c1 = ciphertext[i], c2 = ciphertext[i + 1];
+		// strchr returns a pointer to the first index of character in key. subtract key from pointer to get index
+		c1_ind = (int)(strchr(key, c1) - key), c2_ind = (int)(strchr(key, c2) - key);
+		// Rows have offset 5, columns are mod 5
+		c1_row = c1_ind / 5, c2_row = c2_ind / 5;
+		c1_col = c1_ind % 5, c2_col = c2_ind % 5;
+
+		if (c1_row == c2_row) { // same row
+			// Determine if wrapping occurred
+			if (c1_col == 0) {
+				plaintext[i] = key[c1_ind + 4];
+				plaintext[i+1] = key[c2_ind - 1];
+			} else if (c2_col == 0 ) {
+				plaintext[i] = key[c1_ind - 1];
+				plaintext[i+1] = key[c2_ind + 4];
+			} else {
+				plaintext[i] = key[c1_ind - 1];
+				plaintext[i+1] = key[c2_ind - 1];
+			}
+		} else if (c1_col == c2_col ) { // same column
+			if (c1_row == 0) {
+				plaintext[i] = key[c1_ind + 20];
+				plaintext[i+1] = key[c2_ind - 5];
+			} else if (c2_row == 0) {
+				plaintext[i] = key[c1_ind - 5];
+				plaintext[i+1] = key[c2_ind + 20];
+			} else {
+				plaintext[i] = key[c1_ind - 5];
+				plaintext[i+1] = key[c2_ind - 5];
+			}
+		} else { // rectangle rule
+			plaintext[i] = key[5 * c1_row + c2_col];
+			plaintext[i+1] = key[5 * c2_row + c1_col];
+		}
+	}
+
+	// Add null terminator since it was skipped
+	plaintext[i] = '\0';
+}
+
 void output(int iteration, double score, char *key, char *plaintext) {
 	printf("Iteration: %8d, \tbest score: %12.4lf, \tCurrent key: %s\n", iteration, score, key);
-	// Too much output. Don't output message every time
+	printf("%s\n", plaintext);
 }
 
 bool removeLetter(char *cipher, char letter) {
