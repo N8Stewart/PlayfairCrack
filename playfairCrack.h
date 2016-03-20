@@ -4,9 +4,9 @@
 #define false 0
 
 // Max number of iterations and number of iterations per output checkpoint
-#define MAX_ITERATIONS 100
-#define ITERATION_CHECKPOINT 10
-
+#define MAX_ITERATIONS 10000
+#define ANNEALING_STEP_SIZE 0.5
+#define ANNEALING_TEMP 50
 /*
  * Score a quadgram using the quadgrams stored in quadgrams.h
  */
@@ -39,7 +39,12 @@ bool removeLetter(char *cipher, char letter);
 /*
  * Output relevant information to the screen
  */
-void output(int iteration, double score, char *key, char *plaintext);
+void outputStats(int iteration, double score, char *key);
+
+/*
+ * Output the key in pretty form
+ */
+void outputKey(char *key);
 
 /*
  * Decipher ciphertext using key and put result in plaintext
@@ -75,3 +80,9 @@ void keySwapRows(char *key, int r1, int r2);
  * Modify the key by randomly switching num characters
  */
 void keyShuffle(char *key, int num);
+
+/*
+ * A simulated annealing algorithm to determine the best key
+ */
+double simulatedAnnealing(char *key, char *ciphertext, int messageLen);
+

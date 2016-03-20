@@ -59,7 +59,7 @@ int main(int argc, char **argv) {
 			return -1;
 	}
 
-	/*
+	/*	
 	 * Input cipher and ensure it is valid
 	 */
 	char *ciphertext, *plaintext;
@@ -77,31 +77,74 @@ int main(int argc, char **argv) {
 	printf("Attempting to crack the following ciphertext with key: %s\n", key);
 	printf("%s\n", ciphertext);
 
-	// Construct two keys to prevent overwriting of keys
-	char newKey[26], oldKey[26];
-	strcpy(newKey, key);
-	strcpy(oldKey, key);
-
 	int iter = 0;
 	double score = -DBL_MAX, maxScore = -DBL_MAX;
 	srand(time(NULL)); // randomize seed
 	// Run until max iteration met 
 	while (iter < MAX_ITERATIONS) {
 		iter++;
-		while (score <= maxScore) {
-			strcpy(newKey, oldKey);
-			alterKey(newKey);
-			decipher(newKey, ciphertext, plaintext, messageLen);
-			score = scoreText(plaintext, messageLen);	
+		score = simulatedAnnealing(key, ciphertext, messageLen);
+		if (score > maxScore) {
+			maxScore = score;
+			decipher(key, ciphertext, plaintext, messageLen);
+			printf("\nPossible Plaintext found using key:\n");
+			outputKey(key);
+			printf("%s\n\n", plaintext);
 		}
-		maxScore = score;
-		strcpy(oldKey, newKey);
-		output(iter, score, oldKey, plaintext);
 	}
 	
 	free(plaintext);
 	free(ciphertext);
 	return 0;
+}
+
+double simulatedAnnealing(char *key, char *ciphertext, int messageLen) {
+	int count, iter;
+	float annealStep;
+	char *plaintext = malloc(sizeof(*plaintext) * (messageLen + 1));
+	char newKey[26], oldKey[26];
+	double prob, delta, maxScore, score, bestScore;
+	
+	// Copy over key so we don't screw up our master copy. Decipher ciphertext using key and score it
+	strcpy(oldKey,key);
+	decipher(oldKey, ciphertext, plaintext, messageLen);
+	maxScore = scoreText(plaintext,messageLen);
+	bestScore = maxScore;
+	iter = 0;
+
+	// For each step, find our best key
+	for (annealStep = ANNEALING_TEMP; annealStep >= 0; annealStep -= ANNEALING_STEP_SIZE) {
+		for (count = 0; count < MAX_ITERATIONS; count++) { 
+			strcpy(newKey, oldKey);
+			alterKey(newKey);	
+			decipher(newKey, ciphertext, plaintext, messageLen);
+			score = scoreText(plaintext, messageLen);
+			// our difference between our current maxScore and step score
+			delta = score - maxScore;
+			// We did work in the positive direction (hopefully...)
+			if (delta >= 0) {
+				maxScore = score;
+				strcpy(oldKey, newKey);
+			} else if (annealStep > 0) {
+				// the work we did is a side-grade 
+				prob = exp(delta / annealStep);
+				if (prob > 1.0 * rand() / RAND_MAX) {
+					maxScore = score;
+					strcpy(oldKey, newKey);				
+				}
+			}
+			// This is our best score so far
+			if (maxScore > bestScore){
+				bestScore = maxScore;
+				strcpy(key, oldKey);
+				outputStats(iter, bestScore, key);
+			} 
+			iter++;
+		}
+	}
+	
+	free(plaintext);
+	return bestScore;
 }
 
 void keySwapRows(char *key, int r1, int r2) {
@@ -207,9 +250,15 @@ void decipher(char *key, char *ciphertext, char *plaintext, int len) {
 	plaintext[i] = '\0';
 }
 
-void output(int iteration, double score, char *key, char *plaintext) {
+void outputKey(char *key) {
+	int i;
+	for (i = 0; i < 25; i += 5) { 
+		printf("%c %c %c %c %c\n", key[i + 0], key[i + 1], key[i + 2], key[i + 3], key[i + 4]);
+	}
+}
+
+void outputStats(int iteration, double score, char *key) {
 	printf("Iteration: %8d, \tbest score: %12.4lf, \tCurrent key: %s\n", iteration, score, key);
-	printf("%s\n", plaintext);
 }
 
 bool removeLetter(char *cipher, char letter) {
