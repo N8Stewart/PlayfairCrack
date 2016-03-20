@@ -7,6 +7,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <float.h>
+#include <math.h>
 
 #include "quadgram.h"
 #include "playfairCrack.h"
@@ -59,22 +61,40 @@ int main(int argc, char **argv) {
 	/*
 	 * Input cipher and ensure it is valid
 	 */
-	char *cipher;
-	int cipherLen;
-	cipher = readCipher(fin, INPUT_STEP_SIZE);
-	cipherLen = strlen(cipher);
-	if (validateText(cipher, cipherLen) != 0)
+	char *ciphertext, *plaintext;
+	int messageLen;
+	ciphertext = readCipher(fin, INPUT_STEP_SIZE);
+	messageLen = strlen(ciphertext);
+	if (validateText(ciphertext, messageLen) != 0)
 		printf("Invalid input.\n");
+	plaintext = malloc(sizeof(*plaintext) * (messageLen + 1));
 	// close the file as long as it is not stdin
 	if (fin != stdin)
 		fclose(fin);
-	
+
 	// Output relevant information for error checking
-	printf("Attempting to crack following cipher with key: %s\n", key);
-	printf("%s\n", cipher);
+	printf("Attempting to crack the following ciphertext with key: %s\n", key);
+	printf("%s\n", ciphertext);
+
+	int iter = 0;
+	double score;//, max = -DBL_MAX;
+	// Run until max iteration met 
+	while (iter < MAX_ITERATIONS) {
+		iter++;
+		// Compute new key
+		// Compute new score
+		score = scoreText(ciphertext, messageLen);
+		output(iter, score, key, plaintext);
+	}
 	
-	free(cipher);
+	free(plaintext);
+	free(ciphertext);
 	return 0;
+}
+
+void output(int iteration, double score, char *key, char *plaintext) {
+	printf("Iteration: %8d, \tbest score: %12.4lf, \tCurrent key: %s\n", iteration, score, key);
+	// Too much output. Don't output message every time
 }
 
 bool removeLetter(char *cipher, char letter) {

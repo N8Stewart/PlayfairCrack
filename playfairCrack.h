@@ -1,6 +1,11 @@
+// C89 does not have bool type. Create my own
 #define bool int
 #define true 1
 #define false 0
+
+// Max number of iterations and number of iterations per output checkpoint
+#define MAX_ITERATIONS 100
+#define ITERATION_CHECKPOINT 10
 
 /*
  * Score a quadgram using the quadgrams stored in quadgrams.h
@@ -30,4 +35,9 @@ char *readCipher(FILE *fin, size_t size);
  * Return true if successful, false if the letter was not found
  */
 bool removeLetter(char *cipher, char letter);
+
+/*
+ * Output relevant information to the screen
+ */
+void output(int iteration, double score, char *key, char *plaintext);
 
