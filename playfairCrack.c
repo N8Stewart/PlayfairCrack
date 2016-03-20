@@ -13,20 +13,80 @@
 
 extern float quadgram[];
 
-int main() {
+int main(int argc, char **argv) {
+
+	char cipher[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+	FILE *fin = stdin;
+
+	switch (argc) {
+		case 2:
+			fin = fopen(argv[1], "r");
+			if (fin == NULL) {
+				printf("Invalid file: %s. Unable to open for reading.\n", argv[3]);
+				return -1;
+			}
+		case 1:
+			if (!removeLetter(cipher, 'J')) {
+				printf("Could not remove letter J from cipher key.\n");
+				return -1;
+			}
+			break;
+		case 4:
+			fin = fopen(argv[3], "r");
+			if (fin == NULL) {
+				printf("Invalid file: %s. Unable to open for reading.\n", argv[3]);
+				return -1;
+			}
+		case 3:
+			if (strcmp(argv[1], "-r")) {
+				printf("Optional parameter '-r' not found. '%s' found instead.\n", argv[1]);
+				return -1;
+			}
+			if(!removeLetter(cipher, argv[2][0])) {
+				printf("Could not remove letter %c from cipher key.\n", argv[2][0]);
+				return -1;
+			}
+			break;
+		default:
+			printf("Invalid usage. See below for proper usage.\n");
+			printf("\t./%s [ -r <character_to_remove> ] [ ciphertext_filepath ]\n", argv[0]);
+			return -1;
+	}
+
 	char *m;
-	printf("Input String: ");
-	m = readCipher(stdin, INPUT_STEP_SIZE);
+	m = readCipher(fin, INPUT_STEP_SIZE);
 
 	if (validateText(m, strlen(m)) == 0)
 		printf("Score: %lf\n", scoreText(m, strlen(m)));
 	else
 		printf("Invalid input.\n");
 	free(m);
+
+	// close the file as long as it is not stdin
+	if (fin != stdin)
+		fclose(fin);
+	
 	return 0;
 }
 
-char * readCipher(FILE *fin, size_t size) {
+bool removeLetter(char *cipher, char letter) {
+	char *src, *dst;
+	if (letter >= 'a' && letter <= 'z') {
+		letter -= ' '; // make it capital letter 
+	}
+	bool found; // if the letter was found or not
+	for (src = dst = cipher; *src != '\0'; src++) {
+		*dst = *src;
+		if (*dst != letter) 
+			dst++;
+		else
+			found = true;
+	}
+	*dst = '\0';
+	return found;
+}
+
+char *readCipher(FILE *fin, size_t size) {
 	char *str;
 	int currChar;
 	size_t len = 0;
@@ -54,7 +114,6 @@ double scoreQuadgram(char *text) {
 	index[1] = (*(text + 1) - 'A') * 676;
 	index[2] = (*(text + 2) - 'A') * 26;
 	index[3] = (*(text + 3) - 'A') * 1;
-	printf("Index: %d\n", index[0] + index[1] + index[2] + index[3]);
 	return quadgram[index[0] + index[1] + index[2] + index[3]];
 }
 
