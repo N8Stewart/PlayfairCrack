@@ -46,7 +46,32 @@ void output(int iteration, double score, char *key, char *plaintext);
  */
 void decipher(char *key, char *ciphertext, char *plaintext, int len);
 
-/* 
- * Modify the key by switching two random letters.
+/*
+ * Control modification of the key. Randomly choose an operation to complete.
+ * Operations include: 
+ * shuffle      - 2% chance
+ * swap columns - 4% chance
+ * swap rows    - 4% chance
+ * swap chars   - 90% chance
  */
 void alterKey(char *key);
+
+/* 
+ * Modify the key by switching two random letters, i1 and i2.
+ */
+void keySwapChars(char *key, int i1, int i2);
+
+/*
+ * Modify the key by switching two entire rows, r1 and r2
+ */
+void keySwapRows(char *key, int r1, int r2);
+
+/*
+ * Modify the key by switching two entire columns, c1 and c2
+ */
+void keySwapRows(char *key, int r1, int r2);
+
+/*
+ * Modify the key by randomly switching num characters
+ */
+void keyShuffle(char *key, int num);

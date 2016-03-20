@@ -77,6 +77,11 @@ int main(int argc, char **argv) {
 	printf("Attempting to crack the following ciphertext with key: %s\n", key);
 	printf("%s\n", ciphertext);
 
+	// Construct two keys to prevent overwriting of keys
+	char newKey[26], oldKey[26];
+	strcpy(newKey, key);
+	strcpy(oldKey, key);
+
 	int iter = 0;
 	double score = -DBL_MAX, maxScore = -DBL_MAX;
 	srand(time(NULL)); // randomize seed
@@ -84,12 +89,14 @@ int main(int argc, char **argv) {
 	while (iter < MAX_ITERATIONS) {
 		iter++;
 		while (score <= maxScore) {
-			alterKey(key);
-			decipher(key, ciphertext, plaintext, messageLen);
+			strcpy(newKey, oldKey);
+			alterKey(newKey);
+			decipher(newKey, ciphertext, plaintext, messageLen);
 			score = scoreText(plaintext, messageLen);	
 		}
 		maxScore = score;
-		output(iter, score, key, plaintext);
+		strcpy(oldKey, newKey);
+		output(iter, score, oldKey, plaintext);
 	}
 	
 	free(plaintext);
@@ -97,12 +104,60 @@ int main(int argc, char **argv) {
 	return 0;
 }
 
-void alterKey(char *key) {	
-	// Get two random indexes and swap the characters in them
-	int c1 = rand() % 25, c2 = rand() % 25;
-	char temp = key[c1];
-	key[c1] = key[c2];
-	key[c2] = temp;
+void keySwapRows(char *key, int r1, int r2) {
+	int i;
+	char temp;
+	for (i = 0; i < 5; i++) {
+		temp = key[r1 * 5 + i];
+		key[r1 * 5 + i] = key[r2 * 5 + i];
+		key[r2 * 5 + i] = temp;
+	}
+}
+
+void keySwapCols(char *key, int c1, int c2) {
+	int i;
+	char temp;
+	for (i = 0; i < 5; i++) {
+		temp = key[i * 5 + c1];
+		key[i * 5 + c1] = key[i * 5 + c2];
+		key[i * 5 + c2] = temp;
+	}
+}
+
+void keySwapChars(char *key, int i1, int i2) {	
+	char temp = key[i1];
+	key[i1] = key[i2];
+	key[i2] = temp;
+}
+
+void keyShuffle(char *key, int num) {
+	int i;
+	for (i = 0; i < num; i++) {
+		keySwapChars(key, rand() % 25, rand() % 25);
+	}
+}
+
+void alterKey(char *key) {
+	switch(rand() % 100) {
+		case 1:
+		case 2:
+			keyShuffle(key, rand() % 26);
+			break;
+		case 3:
+		case 4:
+		case 5:
+		case 6:
+			keySwapRows(key, rand() % 5, rand() % 5);
+			break;
+		case 7:
+		case 8:
+		case 9:
+		case 10:
+			keySwapCols(key, rand() % 5, rand() % 5);
+			break;
+		default:
+			keySwapChars(key, rand() % 25, rand() % 25);
+	}
 }
 
 void decipher(char *key, char *ciphertext, char *plaintext, int len) {
