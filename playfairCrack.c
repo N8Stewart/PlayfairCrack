@@ -66,8 +66,10 @@ int main(int argc, char **argv) {
 	int messageLen;
 	ciphertext = readCipher(fin, INPUT_STEP_SIZE);
 	messageLen = strlen(ciphertext);
-	if (validateText(ciphertext, messageLen) != 0)
-		printf("Invalid input.\n");
+	if (validateText(ciphertext, messageLen) != 0) {
+		free(ciphertext);
+		return -1;
+	}
 	plaintext = malloc(sizeof(*plaintext) * (messageLen + 1));
 	// close the file as long as it is not stdin
 	if (fin != stdin)
@@ -83,7 +85,7 @@ int main(int argc, char **argv) {
 	// Run until max iteration met 
 	while (iter < MAX_ITERATIONS) {
 		iter++;
-		score = simulatedAnnealing(key, ciphertext, messageLen);
+		score = simulatedAnnealing(key, ciphertext, plaintext, messageLen);
 		if (score > maxScore) {
 			maxScore = score;
 			decipher(key, ciphertext, plaintext, messageLen);
@@ -98,10 +100,9 @@ int main(int argc, char **argv) {
 	return 0;
 }
 
-double simulatedAnnealing(char *key, char *ciphertext, int messageLen) {
+double simulatedAnnealing(char *key, char *ciphertext, char *plaintext, int messageLen) {
 	int count, iter;
 	float annealStep;
-	char *plaintext = malloc(sizeof(*plaintext) * (messageLen + 1));
 	char newKey[26], oldKey[26];
 	double prob, delta, maxScore, score, bestScore;
 	
@@ -116,7 +117,7 @@ double simulatedAnnealing(char *key, char *ciphertext, int messageLen) {
 	for (annealStep = ANNEALING_TEMP; annealStep >= 0; annealStep -= ANNEALING_STEP_SIZE) {
 		for (count = 0; count < MAX_ITERATIONS; count++) { 
 			strcpy(newKey, oldKey);
-			alterKey(newKey);	
+			alterKey(newKey);
 			decipher(newKey, ciphertext, plaintext, messageLen);
 			score = scoreText(plaintext, messageLen);
 			// our difference between our current maxScore and step score
@@ -143,7 +144,6 @@ double simulatedAnnealing(char *key, char *ciphertext, int messageLen) {
 		}
 	}
 	
-	free(plaintext);
 	return bestScore;
 }
 
@@ -197,9 +197,9 @@ void alterKey(char *key) {
 		case 9:
 		case 10:
 			keySwapCols(key, rand() % 5, rand() % 5);
-			break;
 		default:
 			keySwapChars(key, rand() % 25, rand() % 25);
+			break;
 	}
 }
 
@@ -246,8 +246,9 @@ void decipher(char *key, char *ciphertext, char *plaintext, int len) {
 		}
 	}
 
-	// Add null terminator since it was skipped
-	plaintext[i] = '\0';
+	if (strlen(plaintext) != len) {
+		printf("Uhh ohh2. %d\n", i);
+	}
 }
 
 void outputKey(char *key) {
@@ -301,11 +302,17 @@ char *readCipher(FILE *fin, size_t size) {
 
 double scoreQuadgram(char *text) {
 	int index[4];
+	char output[5];
+	memset(output, '\0', sizeof(output));
+	strncpy(output, text, 4);
 	// Get a number associated with the index of each character
 	index[0] = (*(text + 0) - 'A') * 17576;
 	index[1] = (*(text + 1) - 'A') * 676;
 	index[2] = (*(text + 2) - 'A') * 26;
 	index[3] = (*(text + 3) - 'A') * 1;
+	//int totalIndex = index[0] + index[1] + index[2] + index[3];
+	//printf("Text: %s | ", output);
+	//printf("total Index:%d | 0:%d | 1:%d | 2:%d | 3:%d\n",totalIndex, index[0], index[1], index[2], index[3]);
 	return quadgram[index[0] + index[1] + index[2] + index[3]];
 }
 
@@ -320,11 +327,37 @@ double scoreText(char *text, int len) {
 	return score;
 }
 
-int validateText(char *text, int len) {
+int validateText(char *input, int len) {
 	int i;
-	for (i = 0; i < len; i++)
-		if (text[i] < 'A' || text[i] > 'Z')
+	// Declare an output array and initialize it to all 0's
+	char *output = calloc(len, sizeof(*output));
+	int offset = 0;
+	// Eliminate spaces and reformat case of text
+	for (i = 0; i < len; i++) {
+		// Convert lower case to upper case where applicable
+		if (input[i] >= 'a' && input[i] <= 'z') {
+			output[i - offset] = input[i] - ' ';
+		} else if (input[i] == ' ') {
+			offset += 1;
+		} else if (input[i] >= 'A' && input[i] <= 'Z') {
+			output[i - offset] = input[i];
+		} else {
+			// Invalid character 
+			printf("Invalid character: %c\n", input[i]);
+			free(output);
 			return -1;
+		}
+	}
+	strcpy(input, output);
+	free(output);
+		
+	len -= offset; // Shrink length according to how many spaces were filtered out
+	for (i = 0; i < len; i += 2) {
+		if (input[i] == input[i + 1]) {
+			printf("Double characters are not allowed in playfair: %c%c\n", input[i], input[i + 1]);
+			return -1;
+		}
+	}
 
 	return 0;
 }

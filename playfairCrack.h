@@ -84,5 +84,5 @@ void keyShuffle(char *key, int num);
 /*
  * A simulated annealing algorithm to determine the best key
  */
-double simulatedAnnealing(char *key, char *ciphertext, int messageLen);
+double simulatedAnnealing(char *key, char *ciphertext, char *plaintext, int messageLen);
 
