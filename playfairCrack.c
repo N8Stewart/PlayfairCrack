@@ -70,7 +70,11 @@ int main(int argc, char **argv) {
 		free(ciphertext);
 		return -1;
 	}
+	ciphertext = realloc(ciphertext, sizeof(*ciphertext) * (messageLen + 1));
+	ciphertext[messageLen] = '\0';
 	plaintext = calloc(messageLen + 1, sizeof(*plaintext));
+	strcpy(plaintext, ciphertext);	
+	
 	// close the file as long as it is not stdin
 	if (fin != stdin)
 		fclose(fin);
@@ -217,7 +221,15 @@ void decipher(char *key, char *ciphertext, char *plaintext, int len) {
 		c1_row = c1_ind / 5, c2_row = c2_ind / 5;
 		c1_col = c1_ind % 5, c2_col = c2_ind % 5;
 
-		if (c1_row == c2_row) { // same row
+		if (c1_row == c2_row && c1_col == c2_col) { // Same character
+			int row = c1_row - 1, col = c1_col - 1;
+			if (row < 0)
+				row += 5;
+			if (col < 0)
+				col += 5;
+			int ind = 5 * row + col;
+			plaintext[i] = ind, plaintext[i + 1] = ind;
+		} else if (c1_row == c2_row) { // same row
 			// Determine if wrapping occurred
 			if (c1_col == 0) {
 				plaintext[i] = key[c1_ind + 4];
@@ -347,13 +359,6 @@ int validateText(char *input, int *len) {
 	strcpy(input, output);
 	free(output);
 	*len -= offset; // Shrink length according to how many spaces were filtered out
-/*	for (i = 0; i < *len; i += 2) {
-		if (input[i] == input[i + 1]) {
-			printf("Double characters are not allowed in playfair: %c%c\n", input[i], input[i + 1]);
-			return -1;
-		}
-	}
-*/
 	return 0;
 }
 
