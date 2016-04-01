@@ -66,11 +66,11 @@ int main(int argc, char **argv) {
 	int messageLen;
 	ciphertext = readCipher(fin, INPUT_STEP_SIZE);
 	messageLen = strlen(ciphertext);
-	if (validateText(ciphertext, messageLen) != 0) {
+	if (validateText(ciphertext, &messageLen) != 0) {
 		free(ciphertext);
 		return -1;
 	}
-	plaintext = malloc(sizeof(*plaintext) * (messageLen + 1));
+	plaintext = calloc(messageLen + 1, sizeof(*plaintext));
 	// close the file as long as it is not stdin
 	if (fin != stdin)
 		fclose(fin);
@@ -245,10 +245,6 @@ void decipher(char *key, char *ciphertext, char *plaintext, int len) {
 			plaintext[i+1] = key[5 * c2_row + c1_col];
 		}
 	}
-
-	if (strlen(plaintext) != len) {
-		printf("Uhh ohh2. %d\n", i);
-	}
 }
 
 void outputKey(char *key) {
@@ -327,13 +323,13 @@ double scoreText(char *text, int len) {
 	return score;
 }
 
-int validateText(char *input, int len) {
+int validateText(char *input, int *len) {
 	int i;
 	// Declare an output array and initialize it to all 0's
-	char *output = calloc(len, sizeof(*output));
+	char *output = calloc(*len, sizeof(*output));
 	int offset = 0;
 	// Eliminate spaces and reformat case of text
-	for (i = 0; i < len; i++) {
+	for (i = 0; i < *len; i++) {
 		// Convert lower case to upper case where applicable
 		if (input[i] >= 'a' && input[i] <= 'z') {
 			output[i - offset] = input[i] - ' ';
@@ -350,15 +346,14 @@ int validateText(char *input, int len) {
 	}
 	strcpy(input, output);
 	free(output);
-		
-	len -= offset; // Shrink length according to how many spaces were filtered out
-	for (i = 0; i < len; i += 2) {
+	*len -= offset; // Shrink length according to how many spaces were filtered out
+/*	for (i = 0; i < *len; i += 2) {
 		if (input[i] == input[i + 1]) {
 			printf("Double characters are not allowed in playfair: %c%c\n", input[i], input[i + 1]);
 			return -1;
 		}
 	}
-
+*/
 	return 0;
 }
 
