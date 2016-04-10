@@ -11,5 +11,5 @@ The playfair cipher is a block cipher that is quite effective in obfuscating tex
 * The cracking process can take anywhere from 5 seconds to 5 minutes depending on the length of the text and how representative the plaintext is of the english language (it is much harder to crack 'HexIsnxtzeetixng' than it is to crack 'He Isnt eating').
 * Sometimes the process will not be able to crack the cipher. This is unfortunate, but definitely a possibility.
 * By default, the cracker uses I/J combination, but you can substitute any letter you choose (such as Q or V) by using the commandline argument '-r'
-*- Example: './crack -r Q < test.txt'
+\n\tExample: './crack -r Q < test.txt'
 
